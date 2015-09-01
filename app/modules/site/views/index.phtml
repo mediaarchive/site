@@ -2,13 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>RVMarket</title>
+    <title>Медиаархив</title>
     
     <?php $this->assets->outputCss() ?>
 
     <?php $this->assets->outputJs() ?>
 </head>
 <body>
-    <?=$this->getContent()."\n"?>
+    <div class="container">
+        <div class="header clearfix">
+<!--            <nav>-->
+<!--                <ul class="nav nav-pills pull-right">-->
+<!--                    <li role="presentation" class="active"><a href="">Home</a></li>-->
+<!--                    <li role="presentation"><a href="#">About</a></li>-->
+<!--                    <li role="presentation"><a href="#">Contact</a></li>-->
+<!--                </ul>-->
+<!--            </nav>-->
+            <h3 class="text-muted">Медиаархив</h3>
+        </div>
+
+        <?=$this->getContent()."\n"?>
+
+        <footer class="footer">
+            <p>&copy; 2015 Медиаархив от <a href="http://atnartur.ru">Артур Атнагулов</a> & <a href="http://clienddev.ru">ClienDDev team</a></p>
+        </footer>
+
+    </div> <!-- /container -->
+
+
 </body>
 </html>
