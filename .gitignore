@@ -1,0 +1,9 @@
+public/pdw-assets/
+app/config/server.php
+public/files
+node_modules
+composer.lock
+vendor
+*.komodoproject
+*.komodotools
+.idea
