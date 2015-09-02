@@ -1,7 +1,7 @@
 <?php
 namespace App\Modules\Site\Controllers;
 
-use Yandex\Disk\DiskClient;
+use App\Libs\Archive;
 
 class IndexController extends ControllerBase{
     public function initialize(){
@@ -21,8 +21,7 @@ class IndexController extends ControllerBase{
             $author_name = $this->request->getPost('author_name');
             $text = $this->request->getPost('text');
 
-            $disk = new DiskClient($this->config_server->api->yandex_disk->ya_token);
-            $disk->setServiceScheme(DiskClient::HTTPS_SCHEME);
+            $disk = Archive::disk();
 
             $full_path = $this->config_server->api->yandex_disk->base_dir . '/' . date('Y') . '/' . date('m') . '/' . date('d') . '/' . $name . '/';
 
@@ -50,11 +49,8 @@ class IndexController extends ControllerBase{
                     $dir_content = $disk->directoryContents($dir); // получаем список файлов в директории
             }
 
-            $temp = base64_encode(json_encode(array(
-                'name' => $name,
-                'full_path' => $full_path
-            )));
-            $temp_dir_name = md5($temp);
+            $temp = Archive::generate_temp_data($name, $full_path);
+            $temp_dir_name = Archive::get_temp_dir_from_temp_data($temp);
 
             if(!file_exists('temp/'))
                 mkdir('temp/');
@@ -95,35 +91,112 @@ class IndexController extends ControllerBase{
 
                     unlink($temp_dir . '/data.json');
                 }
-
-                rmdir($temp_dir);
             }
 
             return $this->response->redirect(array('for'=>'event', 'temp_data' => $temp));
         }
     }
+
     public function eventAction(){
         $temp_name = str_replace('/', '', $this->dispatcher->getParam('temp_data'));
 
-        if($temp_name == '' OR $temp_name == null OR $_SERVER['HTTP_REFERER'] !== 'http://' . $_SERVER['HTTP_HOST'] . '/')
+        if(!Archive::check_temp_dir($temp_name))
             return $this->response->redirect(array('for'=>'main'));
 
-        $temp_data = json_decode(base64_decode($temp_name), true);
-        $temp_dir = md5($temp_name);
-
-        $disk = new DiskClient($this->config_server->api->yandex_disk->ya_token);
-        $disk->setServiceScheme(DiskClient::HTTPS_SCHEME);
-
-        try {
-            $dir_content = $disk->directoryContents($temp_data['full_path']);
-        }
-        catch(\Exception $e){}
-
-        if(!is_array($dir_content) OR count($dir_content) === 0)
-            return $this->response->redirect(array('for'=>'main'));
+        $temp_data = Archive::get_temp_data($temp_name);
 
         $this->view->name = $temp_data['name'];
 
+        $this->assets
+            ->addJs('http://static.clienddev.ru/handlebars/3.0.3/handlebars.min.js', false)
+            ->addJs('libs/jquery-filedrop/jquery.filedrop.js')
+            ->addJs('js/site/index/event.js');
+    }
 
+    public function uploadAction(){
+        if(!$this->request->isPost() OR !$this->request->has('temp'))
+            return $this->response->redirect(array('for'=>'main'));
+        else{
+
+
+            $post = $this->request->getPost();
+
+            $item = new TkaniItems();
+            $item->collection_id = $collection->id;
+
+            if($this->view->role !== 'superadmin') // номер материала изменяет только суперадмин
+                unset($post['material_number']);
+
+            if($this->request->getPost('if_active') == 'on' OR $this->request->getPost('if_active') == 1)
+                $item->if_active = true;
+            else
+                $item->if_active = false;
+
+            unset($post['if_active']);
+            unset($post['image_small_src']);
+            unset($post['image_full_src']);
+
+            if ($this->request->hasFiles()) {
+                $files = $this->request->getUploadedFiles();
+
+                foreach($files as $file){
+                    switch($file->getKey()){
+                        case 'image_small_src':
+                            $image_small_src_obj = $item->image_small_src_prepare($file);
+                            if($image_small_src_obj === false)
+                                return false;
+                            break;
+                        case 'image_full_src':
+                            $image_full_src_obj = $item->image_full_src_prepare($file);
+                            if($image_full_src_obj === false)
+                                return false;
+                            break;
+                    }
+                }
+            }
+
+            if ($item->create($post) === true) {
+                if($image_full_src_obj){
+                    if(!$item->image_full_src_save($image_full_src_obj)){
+                        $item->image_cleanup(pathinfo($image_full_src_obj->getName(), PATHINFO_EXTENSION));
+                        return false;
+                    }
+                }
+
+                if($image_small_src_obj){
+                    if(!$item->image_small_src_save($image_small_src_obj))
+                        return false;
+                }
+                else{ // если маленькая картинка не была указан, генерируем автоматически
+                    $item->image_generate_small_from_full();
+                    $item->save();
+                }
+
+                if($this->request->isAjax())
+                    return $this->response->setJsonContent(array(
+                        'status'=>'ok',
+                        'id' => $item->id
+                    ));
+                else{
+                    $this->flashSession->success('Ткань успешно добавлена');
+                    return $this->response->redirect(array('for'=>'admin-part-controller', 'module'=>'Admin', 'namespace'=>'provider', 'controller'=>'tkani'));
+                }
+            }
+            else {
+                if($this->request->isAjax()){
+                    $errors = array();
+
+                    foreach($item->getMessages() as $mes)
+                        $errors[] = $mes->getMessage();
+
+                    return $this->response->setJsonContent(array('error_code'=>4, 'error_text'=>'update data error', 'flash_sessions_errors'=>$errors));
+                }
+                else{
+                    foreach($item->getMessages() as $mes){
+                        $this->flashSession->error("Ошибка при создании ткани: " . $mes);
+                    }
+                }
+            }
+        }
     }
 }

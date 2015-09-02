@@ -1,9 +1,11 @@
 public/pdw-assets/
 app/config/server.php
 public/temp
+public/libs
 node_modules
 composer.lock
 vendor
 *.komodoproject
 *.komodotools
 .idea
+public/styles/site/css/*.min.css
