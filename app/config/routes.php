@@ -41,7 +41,7 @@ $router->add('/event/:params', array(
     'module' => 'Site',
     'controller' => 'index',
     'action' => 'event',
-    'temp_name' => 1
+    'temp_data' => 1
 ))->setName('event');
 
 

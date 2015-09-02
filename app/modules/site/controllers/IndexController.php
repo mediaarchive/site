@@ -99,10 +99,31 @@ class IndexController extends ControllerBase{
                 rmdir($temp_dir);
             }
 
-            return $this->response->redirect(array('for'=>'event', 'temp_name' => $temp));
+            return $this->response->redirect(array('for'=>'event', 'temp_data' => $temp));
         }
     }
     public function eventAction(){
+        $temp_name = str_replace('/', '', $this->dispatcher->getParam('temp_data'));
+
+        if($temp_name == '' OR $temp_name == null OR $_SERVER['HTTP_REFERER'] !== 'http://' . $_SERVER['HTTP_HOST'] . '/')
+            return $this->response->redirect(array('for'=>'main'));
+
+        $temp_data = json_decode(base64_decode($temp_name), true);
+        $temp_dir = md5($temp_name);
+
+        $disk = new DiskClient($this->config_server->api->yandex_disk->ya_token);
+        $disk->setServiceScheme(DiskClient::HTTPS_SCHEME);
+
+        try {
+            $dir_content = $disk->directoryContents($temp_data['full_path']);
+        }
+        catch(\Exception $e){}
+
+        if(!is_array($dir_content) OR count($dir_content) === 0)
+            return $this->response->redirect(array('for'=>'main'));
+
+        $this->view->name = $temp_data['name'];
+
 
     }
 }
