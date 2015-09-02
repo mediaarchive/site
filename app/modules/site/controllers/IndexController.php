@@ -1,6 +1,8 @@
 <?php
 namespace App\Modules\Site\Controllers;
 
+use Phalcon\Validation;
+
 use App\Libs\Archive;
 
 class IndexController extends ControllerBase{
@@ -114,88 +116,33 @@ class IndexController extends ControllerBase{
     }
 
     public function uploadAction(){
-        if(!$this->request->isPost() OR !$this->request->has('temp'))
+        if(!$this->request->isPost() OR !$this->request->has('temp') OR !$this->request->hasFiles())
             return $this->response->redirect(array('for'=>'main'));
         else{
+            $temp_data = Archive::get_temp_data($this->request->get('temp'));
+            $temp_dir = Archive::get_temp_dir_from_temp_data($temp_data);
 
+            if(!Archive::check_temp_dir($temp_dir))
+                return $this->response->redirect(array('for'=>'main'));
 
-            $post = $this->request->getPost();
+            $files = $this->request->getUploadedFiles();
 
-            $item = new TkaniItems();
-            $item->collection_id = $collection->id;
+            foreach($files as $file){
+                $validation = new Validation();
+                $validation->add('file', new UploadValid());
+                $messages = $validation->validate($_FILES);
 
-            if($this->view->role !== 'superadmin') // номер материала изменяет только суперадмин
-                unset($post['material_number']);
+                if(count($messages)) {
+                    $messages = array();
 
-            if($this->request->getPost('if_active') == 'on' OR $this->request->getPost('if_active') == 1)
-                $item->if_active = true;
-            else
-                $item->if_active = false;
+                    foreach ($validation->getMessages() as $message)
+                        $messages[] = $message->getMessage();
 
-            unset($post['if_active']);
-            unset($post['image_small_src']);
-            unset($post['image_full_src']);
-
-            if ($this->request->hasFiles()) {
-                $files = $this->request->getUploadedFiles();
-
-                foreach($files as $file){
-                    switch($file->getKey()){
-                        case 'image_small_src':
-                            $image_small_src_obj = $item->image_small_src_prepare($file);
-                            if($image_small_src_obj === false)
-                                return false;
-                            break;
-                        case 'image_full_src':
-                            $image_full_src_obj = $item->image_full_src_prepare($file);
-                            if($image_full_src_obj === false)
-                                return false;
-                            break;
-                    }
-                }
-            }
-
-            if ($item->create($post) === true) {
-                if($image_full_src_obj){
-                    if(!$item->image_full_src_save($image_full_src_obj)){
-                        $item->image_cleanup(pathinfo($image_full_src_obj->getName(), PATHINFO_EXTENSION));
-                        return false;
-                    }
+                    $this->response->setStatusCode(400);
+                    return $this->response->setJsonContent(array('error' => 'file', 'messages' => $messages));
                 }
 
-                if($image_small_src_obj){
-                    if(!$item->image_small_src_save($image_small_src_obj))
-                        return false;
-                }
-                else{ // если маленькая картинка не была указан, генерируем автоматически
-                    $item->image_generate_small_from_full();
-                    $item->save();
-                }
 
-                if($this->request->isAjax())
-                    return $this->response->setJsonContent(array(
-                        'status'=>'ok',
-                        'id' => $item->id
-                    ));
-                else{
-                    $this->flashSession->success('Ткань успешно добавлена');
-                    return $this->response->redirect(array('for'=>'admin-part-controller', 'module'=>'Admin', 'namespace'=>'provider', 'controller'=>'tkani'));
-                }
-            }
-            else {
-                if($this->request->isAjax()){
-                    $errors = array();
-
-                    foreach($item->getMessages() as $mes)
-                        $errors[] = $mes->getMessage();
-
-                    return $this->response->setJsonContent(array('error_code'=>4, 'error_text'=>'update data error', 'flash_sessions_errors'=>$errors));
-                }
-                else{
-                    foreach($item->getMessages() as $mes){
-                        $this->flashSession->error("Ошибка при создании ткани: " . $mes);
-                    }
-                }
             }
         }
     }

@@ -6,10 +6,14 @@ use Yandex\Disk\DiskClient;
 
 class Archive
 {
+    private static $disk_instance = false;
+
     public static function disk(){
-        $disk = new DiskClient(\Phalcon\DI::getDefault()->getShared('config_server')->api->yandex_disk->ya_token);
-        $disk->setServiceScheme(DiskClient::HTTPS_SCHEME);
-        return $disk;
+        if (self::$disk_instance === false) {
+            self::$disk_instance = new DiskClient(\Phalcon\DI::getDefault()->getShared('config_server')->api->yandex_disk->ya_token);
+            self::$disk_instance->setServiceScheme(DiskClient::HTTPS_SCHEME);
+        }
+        return self::$disk_instance;
     }
 
     public static function generate_temp_data($name, $full_path){
