@@ -67,7 +67,7 @@ $(function(){
                 $('#status_list .file:eq(' + i + '):not(.list-group-item-success,list-group-item-danger) .status').text('Загрузка файла...');
             },
             uploadFinished: function(i, file, response, time) {
-
+                console.log('upload started',file);
             },
             progressUpdated: function(i, file, progress) {
                 // this function is used for large files and updates intermittently

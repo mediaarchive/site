@@ -5,6 +5,11 @@ use Phalcon\Validation;
 
 use App\Libs\Archive;
 
+use App\Libs\Validators\UploadImage;
+use App\Libs\Validators\UploadSize;
+use App\Libs\Validators\UploadType;
+use App\Libs\Validators\UploadValid;
+
 class IndexController extends ControllerBase{
     public function initialize(){
         parent::initialize();
@@ -52,7 +57,9 @@ class IndexController extends ControllerBase{
             }
 
             $temp = Archive::generate_temp_data($name, $full_path);
-            $temp_dir_name = Archive::get_temp_dir_from_temp_data($temp);
+            $temp_dir_name = Archive::get_temp_dir_from_temp_data(Archive::get_temp_data($temp));
+
+            $disk->createDirectory($full_path . 'фото/');
 
             if(!file_exists('temp/'))
                 mkdir('temp/');
@@ -124,7 +131,7 @@ class IndexController extends ControllerBase{
 
             if(!Archive::check_temp_dir($temp_dir))
                 return $this->response->redirect(array('for'=>'main'));
-
+//exit;
             $files = $this->request->getUploadedFiles();
 
             foreach($files as $file){
@@ -142,7 +149,29 @@ class IndexController extends ControllerBase{
                     return $this->response->setJsonContent(array('error' => 'file', 'messages' => $messages));
                 }
 
+                $file_path = 'temp/' . $temp_dir . '/' . md5($file->getName());
 
+                $yadisk_dir = '';
+
+                switch(strtolower($file->getExtension())){
+                    case 'jpg':case 'jpeg':case 'png':case 'gif':
+                            $yadisk_dir = 'фото/';
+                        break;
+                }
+
+                $file->moveTo($file_path);
+
+                $disk = Archive::disk();
+                $disk->uploadFile(
+                    $temp_data['full_path'],
+                    array(
+                        'path' => $file_path,
+                        'size' => filesize($file_path),
+                        'name' => $yadisk_dir . $file->getName()
+                    )
+                );
+
+                unlink($file_path);
             }
         }
     }
