@@ -1,4 +1,6 @@
 {
     "name": "atnartur/mediaarchivesite",
-    "require": {}
+    "require": {
+        "nixsolutions/yandex-php-library": "dev-master"
+    }
 }
