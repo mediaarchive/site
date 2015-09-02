@@ -1,6 +1,6 @@
 public/pdw-assets/
 app/config/server.php
-public/files
+public/temp
 node_modules
 composer.lock
 vendor

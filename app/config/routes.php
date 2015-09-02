@@ -37,6 +37,13 @@ $router->add('/:controller', array(
     'action' => 'index'
 ))->setName('site-controller');
 
+$router->add('/event/:params', array(
+    'module' => 'Site',
+    'controller' => 'index',
+    'action' => 'event',
+    'temp_name' => 1
+))->setName('event');
+
 
 $router->add("/", array(
     //'namespace'=>'App\Modules\Site\Controllers',

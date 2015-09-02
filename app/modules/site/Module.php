@@ -43,6 +43,23 @@ class Module implements ModuleDefinitionInterface{
 			$view->setViewsDir('../app/modules/site/views/');
 			return $view;
 		});
+
+		$di->setShared('flashSession', function() {
+			$flash = new \Phalcon\Flash\Session(array(
+					'warning' => 'alert alert-warning',
+					'notice' => 'alert alert-info',
+					'success' => 'alert alert-success',
+					'error' => 'alert alert-danger',
+					'dismissable' => 'alert alert-dismissable',
+			));
+			return $flash;
+		});
+
+		$di->setShared('session', function() use ($di) {
+			$session = new \Phalcon\Session\Adapter\Files();
+			$session->start();
+			return $session;
+		});
 	}
 
 }

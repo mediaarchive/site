@@ -1,4 +1,4 @@
-<h2>Привет мир!</h2>
+<?php $this->flashSession->output(); ?>
 <form class="form-horizontal" method="post" action="">
     <div class="form-group">
         <label for="inputEmail3" class="col-sm-2 control-label">Название мероприятия</label>
@@ -9,7 +9,7 @@
     <div class="form-group">
         <label for="inputEmail3" class="col-sm-2 control-label">Ваше имя</label>
         <div class="col-sm-10">
-            <input type="author_name" class="form-control" id="author_name" placeholder="В случае необходимости, мы с Вами свяжемся">
+            <input type="text" name="author_name" class="form-control" id="author_name" placeholder="В случае необходимости, мы с Вами свяжемся">
         </div>
     </div>
     <div class="form-group">
