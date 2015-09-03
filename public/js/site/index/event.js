@@ -68,6 +68,7 @@ $(function(){
                 console.log(t);
                 filedrop_class();
             },
+            rename: function(name){ return encodeURIComponent(name); },
             uploadStarted: function(i, file, len){
                 console.log('upload started',file);
             },

@@ -172,6 +172,8 @@ class IndexController extends ControllerBase{
                 );
 
                 unlink($file_path);
+                var_dump($file->getName());
+                exit;
             }
         }
     }
