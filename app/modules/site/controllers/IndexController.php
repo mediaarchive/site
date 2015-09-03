@@ -131,7 +131,7 @@ class IndexController extends ControllerBase{
 
             if(!Archive::check_temp_dir($temp_dir))
                 return $this->response->redirect(array('for'=>'main'));
-//exit;
+
             $files = $this->request->getUploadedFiles();
 
             foreach($files as $file){

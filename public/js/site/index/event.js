@@ -6,6 +6,8 @@ function filedrop_class (classname){
 }
 
 $(function(){
+    var fileTemplate = Handlebars.compile($('#fileTemplate').html());
+
     $(document)
         .on('dragover', function(){
             filedrop_class('drag');
@@ -15,6 +17,9 @@ $(function(){
         });
 
     $('#filedrop')
+        .click(function(){
+            $('#fileinput').click();
+        })
         .on('dragover', function(e){
             filedrop_class('over');
             e.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
@@ -59,26 +64,32 @@ $(function(){
             //maxfiles: 100,
             maxfilesize: 20,    // max file size in MBs
             queuefiles: 3, // паралельные загрузки
-            drop: function() {
+            drop: function(t) {
+                console.log(t);
                 filedrop_class();
             },
             uploadStarted: function(i, file, len){
                 console.log('upload started',file);
-                $('#status_list .file:eq(' + i + '):not(.list-group-item-success,list-group-item-danger) .status').text('Загрузка файла...');
             },
             uploadFinished: function(i, file, response, time) {
-                console.log('upload started',file);
+                $('#file_list .list-group-item[data-id="'+file.name+'"]').removeClass('list-group-item-info').addClass('list-group-item-success');
             },
             progressUpdated: function(i, file, progress) {
                 // this function is used for large files and updates intermittently
                 // progress is the integer value of file being uploaded percentage to completion
-
+                $('#file_list .list-group-item[data-id="'+file.name+'"] .progress_val').text(progress + '%');
             },
             globalProgressUpdated: function(progress) {
                 // progress for all the files uploaded on the current instance (percentage)
-                // ex: $('#progress div').width(progress+"%");
+                $('#progress').width(progress+"%");
             },
-            //beforeEach: function(file) {},
+            beforeEach: function(file) {
+                $('#file_list').append(fileTemplate({
+                    name: file.name,
+                    type: file.type,
+                    size: file.size
+                }));
+            },
             //beforeSend: function(file, i, done) {
             //    done();
             //}
