@@ -28,7 +28,8 @@ class Archive
     }
 
     public static function get_temp_dir_from_temp_data($temp_data){
-        return md5($temp_data['name'] . $temp_data['full_path']);
+//        var_dump($temp_data['name'] . $temp_data['full_path']);
+        return Functions::genhash(20);
     }
 
     public static function check_temp_dir($temp_name){
