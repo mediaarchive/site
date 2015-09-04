@@ -1,9 +1,14 @@
 <?php
 namespace App\Modules\Site\Controllers;
 
+use Phalcon\Mvc\View;
 
 class ControllerBase extends  \Phalcon\Mvc\Controller{
     public function initialize(){
+        if ($this->request->isAjax() == true) {
+            $this->view->setRenderLevel(View::LEVEL_NO_RENDER);
+        }
+
         $this->assets
             ->addCss('http://yastatic.net/bootstrap/3.3.4/css/bootstrap.min.css', false)
             ->addCss('styles/site/css/style.min.css')

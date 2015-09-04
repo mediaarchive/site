@@ -33,8 +33,8 @@ $(function(){
             paramname: 'file',          // POST parameter name used on serverside to reference file, can also be a function taking the filename and returning the paramname
             withCredentials: true,          // make a cross-origin request with cookies
             data: {
-                temp_dir: temp_dir,
-                full_path: full_path
+                temp_dir_name: temp_dir_name,
+                full_path: encodeURIComponent(full_path)
             },
             error: function(err, file) {
                 console.error(err, file);

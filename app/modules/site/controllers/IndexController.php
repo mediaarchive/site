@@ -2,6 +2,7 @@
 namespace App\Modules\Site\Controllers;
 
 use Phalcon\Validation;
+use Phalcon\Mvc\View;
 
 use App\Libs\Archive;
 
@@ -36,7 +37,7 @@ class IndexController extends ControllerBase
 
             $disk = Archive::disk();
 
-            $full_path = $this->config_server->api->yandex_disk->base_dir . '/' . date('Y') . '/' . date('m') . '/' . date('d') . '/' . $name . '/';
+            $full_path = $this->config_server->api->yandex_disk->base_dir . '/' . date('Y') . '/' . date('m') . '/' . date('d') . '/' . $name;
 
             $dirs_create_if_not_exists = array(
                 $this->config_server->api->yandex_disk->base_dir . '/' . date('Y') . '/',
@@ -58,7 +59,17 @@ class IndexController extends ControllerBase
 
                 if ($need_create)  // если надо создавать директорию
                 {
-                    $disk->createDirectory($dir);
+                    try {
+                        $disk->createDirectory($dir . '/');
+                    }
+                    catch(\Exception $e){
+                        if($dir == $full_path){
+                            $extra = ' ('.date('H.i.s').')';
+                            $full_path .= $extra;
+
+                            $disk->createDirectory($full_path);
+                        }
+                    }
                 } // создаем
 
                 if ($key !== count($dirs_create_if_not_exists) - 1) // если не последняя
@@ -67,56 +78,55 @@ class IndexController extends ControllerBase
                 } // получаем список файлов в директории
             }
 
-            $temp = Archive::generate_temp_data($name, $full_path);
-            $temp_dir_name = Archive::get_temp_dir_from_temp_data(Archive::get_temp_data($temp));
+
+            $full_path .= '/';
 
             $disk->createDirectory($full_path . 'фото/');
+
+            $temp_dir_name = Archive::get_temp_dir_from_temp_data(Archive::get_temp_data($temp));
 
             if (!file_exists('temp/')) {
                 mkdir('temp/');
             }
 
             $temp_dir = 'temp/' . $temp_dir_name . '/';
+            mkdir($temp_dir);
 
-            if (!file_exists($temp_dir)) {
-                mkdir($temp_dir);
+            if ($text !== '') {
+                file_put_contents($temp_dir . '/info.txt', $text);
 
-                if ($text !== '') {
-                    file_put_contents($temp_dir . '/info.txt', $text);
+                $disk->uploadFile(
+                    $full_path,
+                    array(
+                        'path' => $temp_dir . '/info.txt',
+                        'size' => filesize($temp_dir . '/info.txt'),
+                        'name' => 'info.txt'
+                    )
+                );
 
-                    $disk->uploadFile(
-                        $full_path,
-                        array(
-                            'path' => $temp_dir . '/info.txt',
-                            'size' => filesize($temp_dir . '/info.txt'),
-                            'name' => 'info.txt'
-                        )
-                    );
+                unlink($temp_dir . '/info.txt');
+            }
 
-                    unlink($temp_dir . '/info.txt');
-                }
+            if ($author_name !== '') {
+                file_put_contents($temp_dir . '/data.json', json_encode(array(
+                    'author_name' => $author_name
+                )));
 
-                if ($author_name !== '') {
-                    file_put_contents($temp_dir . '/data.json', json_encode(array(
-                        'author_name' => $author_name
-                    )));
+                $disk->uploadFile(
+                    $full_path,
+                    array(
+                        'path' => $temp_dir . '/data.json',
+                        'size' => filesize($temp_dir . '/data.json'),
+                        'name' => 'data.json'
+                    )
+                );
 
-                    $disk->uploadFile(
-                        $full_path,
-                        array(
-                            'path' => $temp_dir . '/data.json',
-                            'size' => filesize($temp_dir . '/data.json'),
-                            'name' => 'data.json'
-                        )
-                    );
-
-                    unlink($temp_dir . '/data.json');
-                }
+                unlink($temp_dir . '/data.json');
             }
 
             $this->view->name = $name;
             $this->view->full_path = $full_path;
-            $this->view->temp_dir = $temp_dir;
+            $this->view->temp_dir_name = $temp_dir_name;
 
             $this->view->pick('index/event');
 
@@ -129,13 +139,15 @@ class IndexController extends ControllerBase
 
     public function uploadAction()
     {
-        if (!$this->request->isPost() OR !$this->request->hasPost('full_path') OR !$this->request->hasPost('temp_dir') OR !$this->request->hasFiles()){
+        $this->view->setRenderLevel(View::LEVEL_NO_RENDER);
+
+        if (!$this->request->isPost() OR !$this->request->hasPost('full_path') OR !$this->request->hasPost('temp_dir_name') OR !$this->request->hasFiles()){
             $this->response->setStatusCode(400, 'Bad request');
             return;
         }
         else{
-            $temp_dir = $this->request->getPost('temp_dir');
-            $full_path = $this->request->getPost('full_path');
+            $temp_dir = 'temp/' . $this->request->getPost('temp_dir_name') . '/';
+            $full_path = urldecode($this->request->getPost('full_path'));
 
             $files = $this->request->getUploadedFiles();
 
@@ -167,12 +179,25 @@ class IndexController extends ControllerBase
                 $file->moveTo($file_path);
 
                 $disk = Archive::disk();
+
+                $dir_content = $disk->directoryContents($full_path . $yadisk_dir);
+
+                $file_name = $file->getName();
+
+                foreach($dir_content as $dir_file){
+                    var_dump($file->getName());
+                    var_dump($dir_file);
+                    if($dir_file['resourceType'] == 'file' && $file->getName() == $dir_file['displayName']){
+                        $file_name = basename($file->getName()) . " (".date('H:i:s').")." . $file->getExtension();
+                    }
+                }
+
                 $disk->uploadFile(
-                    $full_path,
+                    $full_path . $yadisk_dir,
                     array(
                         'path' => $file_path,
                         'size' => filesize($file_path),
-                        'name' => $yadisk_dir . $file->getName()
+                        'name' => $file_name
                     )
                 );
 
