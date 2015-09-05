@@ -37,6 +37,7 @@ class IndexController extends ControllerBase
 
             $name = $this->request->getPost('name');
             $author_name = $this->request->getPost('author_name');
+            $contact = $this->request->getPost('contact');
             $text = $this->request->getPost('text');
 
             $disk = Archive::disk();
@@ -113,7 +114,8 @@ class IndexController extends ControllerBase
 
             if ($author_name !== '') {
                 file_put_contents($temp_dir . '/data.json', json_encode(array(
-                    'author_name' => $author_name
+                    'author_name' => $author_name,
+                    'contact' => $contact
                 )));
 
                 $disk->uploadFile(
