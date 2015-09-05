@@ -7,6 +7,12 @@ function filedrop_class (classname){
 
 $(function(){
     var fileTemplate = Handlebars.compile($('#fileTemplate').html());
+    var blocking_window = false;
+
+    window.onbeforeunload = function(){
+        if(blocking_window)
+            return 'Загрузка файлов еще не закончена. Вы уверены, что хотите уйти с этой страницы?';
+    }
 
     $(document)
         .on('dragover', function(){
@@ -72,14 +78,14 @@ $(function(){
             rename: function(name){ return encodeURIComponent(name); },
             uploadStarted: function(i, file, len){
                 console.log('upload started',file);
-                $('button').attr('disabled', 'disabled');
+                blocking_window = true;
             },
             uploadFinished: function(i, file, response, time) {
                 $file = $('#file_list .list-group-item[data-id="'+file.name+'"]');
                 $file.removeClass('list-group-item-info');
 
                 if(response.status != 'ok') {
-                    alert('Произошла ошибка при загрузке файла', file.name);
+                    alert('Произошла ошибка при загрузке файла ' + file.name + '. Попробуйте загрузить этот файл еще раз');
                     console.error(response, file);
                     $file.addClass('list-group-item-danger');
                 }
@@ -106,7 +112,7 @@ $(function(){
             //    done();
             //}
             afterAll: function(){
-                $('button').removeAttr('disabled', 'disabled');
+                blocking_window = false;
             }
         });
 
@@ -125,7 +131,7 @@ $(function(){
                 console.error(res);
             }
             else
-                document.location.href = '/end';
+                document.location.href = '/index/end';
         });
     });
 
@@ -142,7 +148,7 @@ $(function(){
                 console.error(res);
             }
             else
-                document.location.href = '/end?cancel   ';
+                document.location.href = '/index/end?cancel   ';
         });
     });
 });

@@ -194,14 +194,17 @@ class IndexController extends ControllerBase
                         $file_name = basename($file->getName()) . " (".date('H:i:s').")." . $file->getExtension();
                 }
 
-                $disk->uploadFile(
-                    $full_path . $yadisk_dir,
-                    array(
-                        'path' => $file_path,
-                        'size' => filesize($file_path),
-                        'name' => $file_name
-                    )
-                );
+                try {
+                    $disk->uploadFile(
+                        $full_path . $yadisk_dir,
+                        array(
+                            'path' => $file_path,
+                            'size' => filesize($file_path),
+                            'name' => $file_name
+                        )
+                    );
+                }
+                catch(\Guzzle\Http\Exception\CurlException $e){} // если выплевывается это исключение, то файл все равно почему-то загрузился
 
                 unlink($file_path);
             }
@@ -233,7 +236,7 @@ class IndexController extends ControllerBase
 
         if(isset($this->config_server->api->telegram)){
             foreach($this->config_server->api->telegram->chat_ids as $chat_id){
-                Telegram::sendMessage($chat_id, "Медиаархив: " . $this->request->getPost('author_name') . " cоздал новое мероприятие '".$this->request->getPost('name')."'");
+                Telegram::sendMessage($chat_id, "Медиаархив: " . $this->request->getPost('author_name') . " cоздал новое мероприятие '".$this->request->getPost('name')."'. (" . $full_path . ")");
             }
         }
 
@@ -260,5 +263,9 @@ class IndexController extends ControllerBase
             rmdir('temp/' . $temp_dir_name);
 
         return $this->response->setJsonContent(array('status' => 'ok'));
+    }
+
+    public function endAction(){
+        $this->view->cancel = $this->request->has('cancel');
     }
 }
