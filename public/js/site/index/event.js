@@ -84,7 +84,7 @@ $(function(){
                 $file = $('#file_list .list-group-item[data-id="'+file.name+'"]');
                 $file.removeClass('list-group-item-info');
 
-                if(response.status != 'ok') {
+                if(response.status != 'ok' || response == '') {
                     alert('Произошла ошибка при загрузке файла ' + file.name + '. Попробуйте загрузить этот файл еще раз');
                     console.error(response, file);
                     $file.addClass('list-group-item-danger');

@@ -62,19 +62,11 @@ class IndexController extends ControllerBase
                     }
                 }
 
-                if ($need_create)  // если надо создавать директорию
-                {
+                if ($need_create){  // если надо создавать директорию
                     try {
                         $disk->createDirectory($dir . '/');
                     }
-                    catch(\Exception $e){
-                        if($dir == $full_path){
-                            $extra = ' ('.date('H.i.s').')';
-                            $full_path .= $extra;
-
-                            $disk->createDirectory($full_path);
-                        }
-                    }
+                    catch(\Yandex\Disk\Exception\DiskRequestException $e){}
                 } // создаем
 
                 if ($key !== count($dirs_create_if_not_exists) - 1) // если не последняя
@@ -86,7 +78,10 @@ class IndexController extends ControllerBase
 
             $full_path .= '/';
 
-            $disk->createDirectory($full_path . 'фото/');
+            try {
+                $disk->createDirectory($full_path . 'фото/');
+            }
+            catch(\Yandex\Disk\Exception\DiskRequestException $e){} // выходит, если уже директория создана
 
             $temp_dir_name = Archive::get_temp_dir_from_temp_data(Archive::get_temp_data($temp));
 
@@ -98,6 +93,14 @@ class IndexController extends ControllerBase
             mkdir($temp_dir);
 
             if ($text !== '') {
+                if(Archive::disk_if_exists($full_path . 'info.txt')){
+                    $disk->downloadFile($full_path . 'info.txt', $temp_dir, 'old_info.txt');
+                    $old_content = file_get_contents($temp_dir . 'old_info.txt');
+                    unlink($temp_dir . 'old_info.txt');
+
+                    $text = $old_content . "\n\n" + $text;
+                }
+
                 file_put_contents($temp_dir . '/info.txt', $text);
 
                 $disk->uploadFile(
@@ -113,10 +116,24 @@ class IndexController extends ControllerBase
             }
 
             if ($author_name !== '') {
-                file_put_contents($temp_dir . '/data.json', json_encode(array(
-                    'author_name' => $author_name,
+                $json = array();
+                if(Archive::disk_if_exists($full_path . 'data.json')) {
+                    $disk->downloadFile($full_path . 'data.json', $temp_dir, 'old_data.json');
+                    $old_content = file_get_contents($temp_dir . 'old_data.json');
+                    unlink($temp_dir . 'old_data.json');
+
+                    $json = json_decode($old_content, true);
+                }
+
+                if(!isset($json['authors']))
+                    $json['authors'] = array();
+
+                $json['authors'][] = array(
+                    'name' => $author_name,
                     'contact' => $contact
-                )));
+                );
+
+                file_put_contents($temp_dir . '/data.json', json_encode($json));
 
                 $disk->uploadFile(
                     $full_path,
