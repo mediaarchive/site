@@ -83,6 +83,11 @@ class IndexController extends ControllerBase
             }
             catch(\Yandex\Disk\Exception\DiskRequestException $e){} // выходит, если уже директория создана
 
+            try {
+                $disk->createDirectory($full_path . 'фото/' . $author_name . '/');
+            }
+            catch(\Yandex\Disk\Exception\DiskRequestException $e){} // выходит, если уже директория создана
+
             $temp_dir_name = Archive::get_temp_dir_from_temp_data(Archive::get_temp_data($temp));
 
             if (!file_exists('temp/')) {
@@ -165,7 +170,7 @@ class IndexController extends ControllerBase
     {
         $this->view->setRenderLevel(View::LEVEL_NO_RENDER);
 
-        if (!$this->request->isPost() OR !$this->request->hasPost('full_path') OR !$this->request->hasPost('temp_dir_name') OR !$this->request->hasFiles()){
+        if (!$this->request->isPost() OR !$this->request->hasPost('full_path') OR !$this->request->hasPost('temp_dir_name') OR !$this->request->hasPost('author_name') OR !$this->request->hasFiles()){
             $this->response->setStatusCode(400, 'Bad request');
             return;
         }
@@ -196,7 +201,7 @@ class IndexController extends ControllerBase
 
                 switch(strtolower($file->getExtension())){
                     case 'jpg':case 'jpeg':case 'png':case 'gif':
-                            $yadisk_dir = 'фото/';
+                            $yadisk_dir = 'фото/' . $this->request->getPost('author_name') . '/';
                         break;
                 }
 

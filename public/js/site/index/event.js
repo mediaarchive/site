@@ -40,7 +40,8 @@ $(function(){
             withCredentials: true,          // make a cross-origin request with cookies
             data: {
                 temp_dir_name: temp_dir_name,
-                full_path: encodeURIComponent(full_path)
+                full_path: encodeURIComponent(full_path),
+                author_name: encodeURIComponent(author_name)
             },
             error: function(err, file) {
                 console.error(err, file);
@@ -95,7 +96,7 @@ $(function(){
             progressUpdated: function(i, file, progress) {
                 // this function is used for large files and updates intermittently
                 // progress is the integer value of file being uploaded percentage to completion
-                $('#file_list .list-group-item[data-id="'+file.name+'"] .progress_val').text(progress + '%');
+                //$('#file_list .list-group-item[data-id="'+file.name+'"] .progress_val').text(progress + '%');
             },
             globalProgressUpdated: function(progress) {
                 // progress for all the files uploaded on the current instance (percentage)
