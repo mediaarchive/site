@@ -72,9 +72,19 @@ $(function(){
             rename: function(name){ return encodeURIComponent(name); },
             uploadStarted: function(i, file, len){
                 console.log('upload started',file);
+                $('button').attr('disabled', 'disabled');
             },
             uploadFinished: function(i, file, response, time) {
-                $('#file_list .list-group-item[data-id="'+file.name+'"]').removeClass('list-group-item-info').addClass('list-group-item-success');
+                $file = $('#file_list .list-group-item[data-id="'+file.name+'"]');
+                $file.removeClass('list-group-item-info');
+
+                if(response.status != 'ok') {
+                    alert('Произошла ошибка при загрузке файла', file.name);
+                    console.error(response, file);
+                    $file.addClass('list-group-item-danger');
+                }
+                else
+                   $file.addClass('list-group-item-success');
             },
             progressUpdated: function(i, file, progress) {
                 // this function is used for large files and updates intermittently
@@ -95,5 +105,44 @@ $(function(){
             //beforeSend: function(file, i, done) {
             //    done();
             //}
+            afterAll: function(){
+                $('button').removeAttr('disabled', 'disabled');
+            }
         });
+
+    $('.save_button').click(function(){
+        $('button').attr('disabled', 'disabled');
+
+        $.post('/index/save', {
+            name: $('#name').text(),
+            author_name: author_name,
+            full_path: full_path,
+            temp_dir_name: temp_dir_name
+        }, function(res){
+            res = JSON.parse(res);
+            if(res.status != 'ok'){
+                alert('Произошла неизвестная ошибка. Попробуйте еще раз');
+                console.error(res);
+            }
+            else
+                document.location.href = '/end';
+        });
+    });
+
+    $('.cancel_button').click(function(){
+        $('button').attr('disabled', 'disabled');
+
+        $.post('/index/cancel', {
+            full_path: full_path,
+            temp_dir_name: temp_dir_name
+        }, function(res){
+            res = JSON.parse(res);
+            if(res.status != 'ok'){
+                alert('Произошла неизвестная ошибка. Попробуйте еще раз');
+                console.error(res);
+            }
+            else
+                document.location.href = '/end?cancel   ';
+        });
+    });
 });

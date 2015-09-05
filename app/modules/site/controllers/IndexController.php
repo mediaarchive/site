@@ -1,10 +1,12 @@
 <?php
 namespace App\Modules\Site\Controllers;
 
+use App\Libs\TelegramNotifier;
 use Phalcon\Validation;
 use Phalcon\Mvc\View;
 
 use App\Libs\Archive;
+use App\Libs\TelegramNotifier as Telegram;
 
 use App\Libs\Validators\UploadImage;
 use App\Libs\Validators\UploadSize;
@@ -127,6 +129,7 @@ class IndexController extends ControllerBase
             }
 
             $this->view->name = $name;
+            $this->view->author_name = $author_name;
             $this->view->full_path = $full_path;
             $this->view->temp_dir_name = $temp_dir_name;
 
@@ -187,11 +190,8 @@ class IndexController extends ControllerBase
                 $file_name = $file->getName();
 
                 foreach($dir_content as $dir_file){
-                    var_dump($file->getName());
-                    var_dump($dir_file);
-                    if($dir_file['resourceType'] == 'file' && $file->getName() == $dir_file['displayName']){
+                    if($dir_file['resourceType'] == 'file' && $file->getName() == $dir_file['displayName'])
                         $file_name = basename($file->getName()) . " (".date('H:i:s').")." . $file->getExtension();
-                    }
                 }
 
                 $disk->uploadFile(
@@ -205,6 +205,60 @@ class IndexController extends ControllerBase
 
                 unlink($file_path);
             }
+
+            return $this->response->setJsonContent(array('status' => 'ok'));
         }
+    }
+
+    public function saveAction(){
+        $this->view->setRenderLevel(View::LEVEL_NO_RENDER);
+
+        if(
+            !$this->request->isPost() OR
+            !$this->request->hasPost('temp_dir_name') OR
+            !$this->request->hasPost('name') OR
+            !$this->request->hasPost('author_name') OR
+            !$this->request->hasPost('full_path')
+        ) return;
+
+        $temp_dir_name = $this->request->getPost('temp_dir_name');
+
+        if(!file_exists('temp/' . $temp_dir_name)) return;
+
+        rmdir('temp/' . $temp_dir_name);
+
+        $full_path = $this->request->getPost('full_path');
+
+        if(!Archive::disk_if_exists($full_path)) return;
+
+        if(isset($this->config_server->api->telegram)){
+            foreach($this->config_server->api->telegram->chat_ids as $chat_id){
+                Telegram::sendMessage($chat_id, "Медиаархив: " . $this->request->getPost('author_name') . " cоздал новое мероприятие '".$this->request->getPost('name')."'");
+            }
+        }
+
+        return $this->response->setJsonContent(array('status' => 'ok'));
+    }
+
+    public function cancelAction(){
+        $this->view->setRenderLevel(View::LEVEL_NO_RENDER);
+
+        if(
+            !$this->request->isPost() OR
+            !$this->request->hasPost('temp_dir_name') OR
+            !$this->request->hasPost('full_path')
+        ) return;
+
+        $full_path = $this->request->getPost('full_path');
+        if(Archive::disk_if_exists($full_path)) {
+            $disk = Archive::disk();
+            $disk->delete($full_path);
+        }
+
+        $temp_dir_name = $this->request->getPost('temp_dir_name');
+        if(!file_exists('temp/' . $temp_dir_name))
+            rmdir('temp/' . $temp_dir_name);
+
+        return $this->response->setJsonContent(array('status' => 'ok'));
     }
 }

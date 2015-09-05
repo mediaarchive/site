@@ -50,4 +50,25 @@ class Archive
 
         return true;
     }
+
+    public static function disk_if_exists($path){
+        $last_index_of_slash = strrpos($path, '/');
+
+        if($last_index_of_slash == strlen($path) - 1)
+            $path = substr($path, 0, $last_index_of_slash);
+
+        $last_index_of_slash = strrpos($path, '/');
+
+        $dir = substr($path, 0, $last_index_of_slash);
+        $filename = basename($path);
+
+        $disk = self::disk();
+
+        foreach($disk->directoryContents($dir) as $in_dir){
+            if($in_dir['displayName'] == $filename)
+                return true;
+        }
+
+        return false;
+    }
 }

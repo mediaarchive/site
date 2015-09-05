@@ -1,9 +1,9 @@
 <h1>Загрузка файлов для новости</h1>
-<h2>Мероприятие - <?=$name?></h2>
+<h2>Мероприятие - <span id="name"><?=$name?></span></h2>
 
 <p>Вы можете загрузить фотографии, документы и другие файлы, которые нужно будет выложить на сайт школы</p>
 
-<input type="file" id="fileinput" accept="image/jpg,image/jpeg,image/png,image/gif" multiple>
+<input type="file" id="fileinput" multiple>
 
 <div id="filedrop">
     <h1>Загрузить фотографии или другие файлы</h1>
@@ -23,9 +23,15 @@
 
 <div id="file_list" class="list-group"></div>
 
+<div class="row">
+    <button class="btn btn-block btn-lg btn-primary save_button"><i class="fa fa-save"></i> Сохранить</button>
+    <button class="btn btn-block btn-sm btn-danger cancel_button"><i class="fa fa-close"></i> Отмена</button>
+</div>
+
 <script>
     var full_path = '<?=$full_path?>';
     var temp_dir_name = '<?=$temp_dir_name?>';
+    var author_name = '<?=$author_name?>';
 </script>
 
 <script type="text/x-handlebars-template" id="fileTemplate">
