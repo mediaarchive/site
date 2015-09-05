@@ -23,11 +23,13 @@ class IndexController extends ControllerBase
 
     public function indexAction()
     {
+        $this->assets->addJs('js/site/index/index.js');
+
         if ($this->request->isPost()) {
-            if (!$this->request->has('name')) {
+            if (!$this->request->has('name') OR $this->request->get('name') == '') {
                 return $this->flashSession->error("Пожалуйста, укажите название новости");
             }
-            if (!$this->request->has('author_name')) {
+            if (!$this->request->has('author_name') OR $this->request->get('author_name') == '') {
                 return $this->flashSession->error("Пожалуйста, укажите Ваше имя");
             }
 
