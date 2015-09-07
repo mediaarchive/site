@@ -220,7 +220,7 @@ class IndexController extends ControllerBase
                         $file_name = basename($file->getName()) . " (".date('H:i:s').")." . $file->getExtension();
                 }
 
-                try {
+//                try {
                     $disk->uploadFile(
                         $full_path . $yadisk_dir,
                         array(
@@ -229,13 +229,17 @@ class IndexController extends ControllerBase
                             'name' => $file_name
                         )
                     );
-                }
-                catch(\Guzzle\Http\Exception\CurlException $e){} // если выплевывается это исключение, то файл все равно почему-то загрузился
+//                }
+//                catch(\Guzzle\Http\Exception\CurlException $e){} // если выплевывается это исключение, то файл все равно почему-то загрузился
 
                 unlink($file_path);
             }
 
-            return $this->response->setJsonContent(array('status' => 'ok'));
+            return $this->response->setJsonContent(array(
+                'status' => 'ok',
+                'str' => $this->request->getPost('str'),
+                'file_name' => $file_name
+            ));
         }
     }
 

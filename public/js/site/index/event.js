@@ -22,6 +22,8 @@ $(function(){
             filedrop_class();
         });
 
+    var upload_label_str = 1;
+
     $('#filedrop')
         .click(function(){
             $('#fileinput').click();
@@ -71,7 +73,7 @@ $(function(){
             //allowedfileextensions: ['.jpg','.jpeg','.png','.gif'], // file extensions allowed. Empty array means no restrictions
             //maxfiles: 100,
             maxfilesize: 20,    // max file size in MBs
-            queuefiles: 3, // паралельные загрузки
+            queuefiles: 1, // паралельные загрузки
             drop: function(t) {
                 console.log(t);
                 filedrop_class();
@@ -82,8 +84,11 @@ $(function(){
                 blocking_window = true;
             },
             uploadFinished: function(i, file, response, time) {
-                $file = $('#file_list .list-group-item[data-id="'+file.name+'"]');
+                $file = $('#file_list .list-group-item[data-str="'+file.str+'"]');
                 $file.removeClass('list-group-item-info');
+
+                if(typeof response.file_name !== 'undefined')
+                    $file.find('.name').text(decodeURI(response.file_name));
 
                 if(response.status != 'ok' || response == '') {
                     alert('Произошла ошибка при загрузке файла ' + file.name + '. Попробуйте загрузить этот файл еще раз');
@@ -103,11 +108,15 @@ $(function(){
                 $('#progress').width(progress+"%");
             },
             beforeEach: function(file) {
+                upload_label_str++
+                file.str = upload_label_str;
                 $('#file_list').append(fileTemplate({
                     name: file.name,
                     type: file.type,
-                    size: file.size
+                    size: file.size,
+                    str: upload_label_str
                 }));
+                this.data.str = upload_label_str;
             },
             //beforeSend: function(file, i, done) {
             //    done();
