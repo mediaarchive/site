@@ -279,13 +279,18 @@ class IndexController extends ControllerBase
         if(
             !$this->request->isPost() OR
             !$this->request->hasPost('temp_dir_name') OR
+            !$this->request->hasPost('author_name') OR
             !$this->request->hasPost('full_path')
         ) return;
 
         $full_path = $this->request->getPost('full_path');
         if(Archive::disk_if_exists($full_path)) {
             $disk = Archive::disk();
-            $disk->delete($full_path);
+
+            try {
+                $disk->delete($full_path . 'фото/' . $this->request->getPost('author_name') . '/');
+            }
+            catch(\Yandex\Disk\Exception\DiskRequestException $e){}
         }
 
         $temp_dir_name = $this->request->getPost('temp_dir_name');

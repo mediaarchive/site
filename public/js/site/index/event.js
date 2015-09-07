@@ -150,8 +150,14 @@ $(function(){
 
         $.post('/index/cancel', {
             full_path: full_path,
-            temp_dir_name: temp_dir_name
+            temp_dir_name: temp_dir_name,
+            author_name: author_name
         }, function(res){
+            if(res == '') {
+                alert('Произошла неизвестная ошибка. Попробуйте еще раз');
+                return;
+            }
+
             res = JSON.parse(res);
             if(res.status != 'ok'){
                 alert('Произошла неизвестная ошибка. Попробуйте еще раз');
