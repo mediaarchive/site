@@ -213,14 +213,14 @@ class IndexController extends ControllerBase
 
                 $dir_content = $disk->directoryContents($full_path . $yadisk_dir);
 
-                $file_name = $file->getName();
+                $file_name = urldecode($file->getName());
 
                 foreach($dir_content as $dir_file){
-                    if($dir_file['resourceType'] == 'file' && $file->getName() == $dir_file['displayName'])
-                        $file_name = basename($file->getName()) . " (".date('H:i:s').")." . $file->getExtension();
+                    if($dir_file['resourceType'] == 'file' && $file_name == $dir_file['displayName'])
+                        $file_name = str_replace('.'.$file->getExtension(), '', $file_name) . " (".date('H:i:s').")." . $file->getExtension();
                 }
 
-//                try {
+                try {
                     $disk->uploadFile(
                         $full_path . $yadisk_dir,
                         array(
@@ -229,8 +229,8 @@ class IndexController extends ControllerBase
                             'name' => $file_name
                         )
                     );
-//                }
-//                catch(\Guzzle\Http\Exception\CurlException $e){} // если выплевывается это исключение, то файл все равно почему-то загрузился
+                }
+                catch(\Guzzle\Http\Exception\CurlException $e){} // если выплевывается это исключение, то файл все равно почему-то загрузился
 
                 unlink($file_path);
             }
