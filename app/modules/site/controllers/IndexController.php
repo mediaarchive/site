@@ -25,7 +25,9 @@ class IndexController extends ControllerBase
 
     public function indexAction()
     {
-        $this->assets->addJs('js/site/index/index.js');
+        $this->assets
+            ->addJs('js/general.js')
+            ->addJs('js/site/index/index.js');
 
         if ($this->request->isPost()) {
             if (!$this->request->has('name') OR $this->request->get('name') == '') {
@@ -211,11 +213,11 @@ class IndexController extends ControllerBase
 
                 $dir_content = $disk->directoryContents($full_path . $yadisk_dir);
 
-                $file_name = $file->getName();
+                $file_name = urldecode($file->getName());
 
                 foreach($dir_content as $dir_file){
-                    if($dir_file['resourceType'] == 'file' && $file->getName() == $dir_file['displayName'])
-                        $file_name = basename($file->getName()) . " (".date('H:i:s').")." . $file->getExtension();
+                    if($dir_file['resourceType'] == 'file' && $file_name == $dir_file['displayName'])
+                        $file_name = str_replace('.'.$file->getExtension(), '', $file_name) . " (".date('H:i:s').")." . $file->getExtension();
                 }
 
                 try {
@@ -233,7 +235,11 @@ class IndexController extends ControllerBase
                 unlink($file_path);
             }
 
-            return $this->response->setJsonContent(array('status' => 'ok'));
+            return $this->response->setJsonContent(array(
+                'status' => 'ok',
+                'str' => $this->request->getPost('str'),
+                'file_name' => $file_name
+            ));
         }
     }
 
@@ -273,13 +279,18 @@ class IndexController extends ControllerBase
         if(
             !$this->request->isPost() OR
             !$this->request->hasPost('temp_dir_name') OR
+            !$this->request->hasPost('author_name') OR
             !$this->request->hasPost('full_path')
         ) return;
 
         $full_path = $this->request->getPost('full_path');
         if(Archive::disk_if_exists($full_path)) {
             $disk = Archive::disk();
-            $disk->delete($full_path);
+
+            try {
+                $disk->delete($full_path . 'фото/' . $this->request->getPost('author_name') . '/');
+            }
+            catch(\Yandex\Disk\Exception\DiskRequestException $e){}
         }
 
         $temp_dir_name = $this->request->getPost('temp_dir_name');
