@@ -25,7 +25,9 @@ class IndexController extends ControllerBase
 
     public function indexAction()
     {
-        $this->assets->addJs('js/site/index/index.js');
+        $this->assets
+            ->addJs('js/general.js')
+            ->addJs('js/site/index/index.js');
 
         if ($this->request->isPost()) {
             if (!$this->request->has('name') OR $this->request->get('name') == '') {
