@@ -23,9 +23,22 @@ $(function(){
         });
 
     var upload_label_str = 1;
-
+    alert((function () {
+        // Handle devices which falsely report support
+        if (navigator.userAgent.match(/(Android (1.0|1.1|1.5|1.6|2.0|2.1))|(Windows Phone (OS 7|8.0))|(XBLWP)|(ZuneWP)|(w(eb)?OSBrowser)|(webOS)|(Kindle\/(1.0|2.0|2.5|3.0))/)) {
+            return false;
+        }
+        // Create test element
+        var el = document.createElement("input");
+        el.type = "file";
+        return !el.disabled;
+    })())
+    $('#fileinput').change(function(){
+        alert('fileinput changed');
+    });
     $('#filedrop')
         .click(function(){
+            alert('click on filedrop')
             $('#fileinput').click();
         })
         .on('dragover', function(e){
@@ -45,9 +58,9 @@ $(function(){
                 full_path: encodeURIComponent(full_path),
                 author_name: encodeURIComponent(author_name)
             },
-            error: function(err, file) {
+            error: function (err, file) {
                 console.error(err, file);
-                switch(err) {
+                switch (err) {
                     case 'BrowserNotSupported':
                         alert('Браузер не поддерживает загрузку перетаскиванием')
                         break;
@@ -74,40 +87,48 @@ $(function(){
             //maxfiles: 100,
             maxfilesize: 20,    // max file size in MBs
             queuefiles: 1, // паралельные загрузки
-            drop: function(t) {
+            drop: function (t) {
+                alert("drop");
                 console.log(t);
                 filedrop_class();
             },
-            rename: function(name){ return encodeURIComponent(name); },
-            uploadStarted: function(i, file, len){
-                console.log('upload started',file);
+            rename: function (name) {
+                return encodeURIComponent(name);
+            },
+            uploadStarted: function (i, file, len) {
+                alert('upload started');
+                console.log('upload started', file);
                 blocking_window = true;
             },
-            uploadFinished: function(i, file, response, time) {
-                $file = $('#file_list .list-group-item[data-str="'+file.str+'"]');
+            uploadFinished: function (i, file, response, time) {
+                alert('upload finished');
+                $file = $('#file_list .list-group-item[data-str="' + file.str + '"]');
                 $file.removeClass('list-group-item-info');
 
-                if(typeof response.file_name !== 'undefined')
+                if (typeof response.file_name !== 'undefined')
                     $file.find('.name').text(decodeURI(response.file_name));
 
-                if(response.status != 'ok' || response == '') {
+                if (response.status != 'ok' || response == '') {
                     alert('Произошла ошибка при загрузке файла ' + file.name + '. Попробуйте загрузить этот файл еще раз');
                     console.error(response, file);
                     $file.addClass('list-group-item-danger');
                 }
                 else
-                   $file.addClass('list-group-item-success');
+                    $file.addClass('list-group-item-success');
             },
-            progressUpdated: function(i, file, progress) {
+            progressUpdated: function (i, file, progress) {
+                alert('progress')
                 // this function is used for large files and updates intermittently
                 // progress is the integer value of file being uploaded percentage to completion
                 //$('#file_list .list-group-item[data-id="'+file.name+'"] .progress_val').text(progress + '%');
             },
-            globalProgressUpdated: function(progress) {
+            globalProgressUpdated: function (progress) {
+                alert('global progress');
                 // progress for all the files uploaded on the current instance (percentage)
-                $('#progress').width(progress+"%");
+                $('#progress').width(progress + "%");
             },
-            beforeEach: function(file) {
+            beforeEach: function (file) {
+                alert('before each');
                 upload_label_str++
                 file.str = upload_label_str;
                 $('#file_list').append(fileTemplate({
@@ -118,11 +139,24 @@ $(function(){
                 }));
                 this.data.str = upload_label_str;
             },
-            //beforeSend: function(file, i, done) {
-            //    done();
-            //}
-            afterAll: function(){
+            beforeSend: function (file, i, done) {
+                alert('before send')
+                $.get('/index/upload?test', function(){
+                    alert(1);
+                    done();
+                });
+            },
+            afterAll: function () {
+                alert('after all');
+
                 blocking_window = false;
+            },
+            fail: function (ev, data) {
+                alert('Загрузка файла не удалась:( Попробуйте еще раз');
+                console.error(ev, data);
+            },
+            done: function (e, data) {
+                alert('done');
             }
         });
 

@@ -164,13 +164,16 @@ class IndexController extends ControllerBase
             $this->assets
                 ->addJs('http://static.clienddev.ru/handlebars/3.0.3/handlebars.min.js', false)
                 ->addJs('libs/jquery-filedrop/jquery.filedrop.js')
-                ->addJs('js/site/index/event.js');
+                ->addJs('js/site/index/event.js?' . date('His'));
         }
     }
 
     public function uploadAction()
     {
         $this->view->setRenderLevel(View::LEVEL_NO_RENDER);
+
+        if($this->request->has('test'))
+            return $this->response->setJsonContent(array('status' => 'ok'));
 
         if (!$this->request->isPost() OR !$this->request->hasPost('full_path') OR !$this->request->hasPost('temp_dir_name') OR !$this->request->hasPost('author_name') OR !$this->request->hasFiles()){
             $this->response->setStatusCode(400, 'Bad request');
