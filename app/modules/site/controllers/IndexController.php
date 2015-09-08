@@ -105,7 +105,7 @@ class IndexController extends ControllerBase
                     $old_content = file_get_contents($temp_dir . 'old_info.txt');
                     unlink($temp_dir . 'old_info.txt');
 
-                    $text = $old_content . "\n\n" + $text;
+                    $text = $old_content . "\n\n" . $text;
                 }
 
                 file_put_contents($temp_dir . '/info.txt', $text);
