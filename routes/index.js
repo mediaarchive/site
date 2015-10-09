@@ -4,14 +4,22 @@ var phpjs = require('phpjs');
 var async = require('async');
 var multiparty = require('multiparty');
 var path = require('path');
+var telegram = require('node-telegram-bot-api');
 var form = require( 'express-form2' );
 var field = form.field;
 var yandexdisk = require('../lib/yadisk');
 
+var t;
+router.use(function(req, res, next){
+    t = new telegram(global.config.api.telegram.api_key);
+    next();
+});
 
 router.get('/', function(req, res, next) {
     res.render('index');
 });
+
+
 
 router.post('/', form(
     field('name').trim().required(),
@@ -130,6 +138,9 @@ router.post('/', form(
     });
 });
 
+
+
+
 router.post('/upload', form(
     field('full_path').trim().required(),
     field('author_name').trim().required()
@@ -217,5 +228,37 @@ router.post('/upload', form(
         ]);
     });
 });
+
+
+router.post('/save', form(
+    field('full_path').trim().required(),
+    field('author_name').trim().required(),
+    field('name').trim().required()
+), function(req, res){
+    res.send({status: 'ok'});
+
+    t.sendMessage(
+        global.config.api.telegram.chat_id,
+        "Медиаархив: " + req.body.author_name + " cоздал новое мероприятие '" + req.body.name + "'. (" + req.body.full_path + ")"
+    );
+});
+
+router.post('/cancel', form(
+    field('full_path').trim().required(),
+    field('author_name').trim().required(),
+    field('name').trim().required()
+), function(req, res){
+    res.send({status: 'ok'});
+
+    var yadisk = yandexdisk();
+    yadisk.cd(req.body.full_path);
+    yadisk.remove('фото/' + req.body.author_name);
+
+    t.sendMessage(
+        global.config.api.telegram.chat_id,
+        "Медиаархив: " + req.body.author_name + " отменил создание мероприятия '" + req.body.name + "'. (" + req.body.full_path + ")"
+    );
+});
+
 
 module.exports = router;

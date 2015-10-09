@@ -144,7 +144,7 @@ $(function(){
     $('.save_button').click(function(){
         $('button').attr('disabled', 'disabled');
 
-        $.post('/index/save', {
+        $.post('/save', {
             name: $('#name').text(),
             author_name: author_name,
             full_path: full_path,
@@ -155,16 +155,17 @@ $(function(){
                 console.error(res);
             }
             else
-                document.location.href = '/index/end';
+                document.location.href = '/end';
         });
     });
 
     $('.cancel_button').click(function(){
         $('button').attr('disabled', 'disabled');
 
-        $.post('/index/cancel', {
+        $.post('/cancel', {
             full_path: full_path,
-            author_name: author_name
+            author_name: author_name,
+            name: $('#name').text()
         }, function(res){
             if(res == '') {
                 alert('Произошла неизвестная ошибка. Попробуйте еще раз');
@@ -177,7 +178,7 @@ $(function(){
                 console.error(res);
             }
             else
-                document.location.href = '/index/end?cancel   ';
+                document.location.href = '/end?cancel';
         });
     });
 });
