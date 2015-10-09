@@ -1,0 +1,15 @@
+{
+    "api": {
+        "yandex_disk": {
+            "client_id": "",
+            "client_secret": "",
+            "ya_token": "",
+            "base_dir": ""
+        },
+        "telegram":
+        {
+            "api_key": "",
+            "chat_ids": []
+        }
+    }
+}

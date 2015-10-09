@@ -9,3 +9,4 @@ vendor
 *.komodotools
 .idea
 public/styles/site/css/*.min.css
+config.json
