@@ -165,17 +165,12 @@ router.post('/upload', form(
         var author_name = fields.author_name[0];
         var extra_path = '';
 
-        var ext = path.extname(file).toLowerCase();
-        console.log(ext);
-        if(ext == '.png' || ext == '.jpg' || ext == '.jpeg'){
-            extra_path = '/фото/' + author_name;
-        }
 
         var yadisk = yandexdisk();
         yadisk.cd(global.config.api.yandex_disk.base_dir);
 
-        var file_dir = path.join(global.config.api.yandex_disk.base_dir, full_path, extra_path);
-        var file_name;
+        var file_name = encodeURIComponent(file.originalFilename);
+        var ext = path.extname(file_name).toLowerCase();
 
         console.log(file, full_path);
 
@@ -194,21 +189,26 @@ router.post('/upload', form(
                 });
             },
             function(callback) {
-                yadisk.mkdir('фото/', function(err, res) {
-                    yadisk.mkdir(extra_path, function (err, res) {
-                        callback();
+                if(ext == '.png' || ext == '.jpg' || ext == '.jpeg') {
+                    yadisk.mkdir('фото/', function (err, res) {
+                        yadisk.mkdir('фото/' + author_name, function (err, res) {
+                            callback();
+                        });
                     });
-                });
+                }
+                else
+                    callback();
             },
             function(callback){
-                yadisk.cd(extra_path);
-                console.log(yadisk, extra_path);
+                if(ext == '.png' || ext == '.jpg' || ext == '.jpeg')
+                    yadisk.cd('фото/' + author_name);
+
+                console.log(22, yadisk, ext, 'фото/' + author_name);
 
                 yadisk.exists(file.originalFilename, function(err, res){
                     if(err)
                         console.log(err);
 
-                    file_name = encodeURIComponent(file.originalFilename);
 
                     if(res) // если файл найден
                         file_name = path.basename(file.originalFilename) + ' (' + (new Date()).getTime() + ')' + path.extname(file.originalFilename);
