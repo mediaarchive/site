@@ -2,6 +2,8 @@ var express = require('express');
 var router = express.Router();
 var phpjs = require('phpjs');
 var async = require('async');
+var multiparty = require('multiparty');
+var path = require('path');
 var form = require( 'express-form2' );
 var field = form.field;
 var yandexdisk = require('../lib/yadisk');
@@ -119,10 +121,100 @@ router.post('/', form(
             }
         ], function(){
             res.cookie('full_path', full_path);
+            res.cookie('author_name', req.body.author_name);
+
             res.render('event', {
                 name: req.body.name
             });
         });
+    });
+});
+
+router.post('/upload', form(
+    field('full_path').trim().required(),
+    field('author_name').trim().required()
+), function(req, res){
+    var form = new multiparty.Form();
+
+    // парсим форму
+    form.parse(req, function(err, fields, files) {
+        if(err) {
+            console.log(err);
+            return res.json({error: 'file uploading', obj: err});
+        }
+
+        res.json({status: 'ok'});
+
+        var file = files.file[0];
+
+        if(!file)
+            return;
+
+        var full_path = fields.full_path[0];
+        var author_name = fields.author_name[0];
+        var extra_path = '';
+
+        var ext = path.extname(file).toLowerCase();
+        console.log(ext);
+        if(ext == '.png' || ext == '.jpg' || ext == '.jpeg'){
+            extra_path = '/фото/' + author_name;
+        }
+
+        var yadisk = yandexdisk();
+        yadisk.cd(global.config.api.yandex_disk.base_dir);
+
+        var file_dir = path.join(global.config.api.yandex_disk.base_dir, full_path, extra_path);
+        var file_name;
+
+        console.log(file, full_path);
+
+        async.series([
+            function(callback){
+                yadisk.exists(full_path, function(err, res){
+                    if(err)
+                        console.log(err);
+
+                    if(!res) // если папка не найдена
+                        return; // выходим
+
+                    yadisk.cd(full_path);
+
+                    callback();
+                });
+            },
+            function(callback) {
+                yadisk.mkdir('фото/', function(err, res) {
+                    yadisk.mkdir(extra_path, function (err, res) {
+                        callback();
+                    });
+                });
+            },
+            function(callback){
+                yadisk.cd(extra_path);
+                console.log(yadisk, extra_path);
+
+                yadisk.exists(file.originalFilename, function(err, res){
+                    if(err)
+                        console.log(err);
+
+                    file_name = encodeURIComponent(file.originalFilename);
+
+                    if(res) // если файл найден
+                        file_name = path.basename(file.originalFilename) + ' (' + (new Date()).getTime() + ')' + path.extname(file.originalFilename);
+
+                    callback();
+                });
+            },
+            function(callback){
+                yadisk.uploadFile(file.path, file_name, function(err, res){
+                    if(err)
+                        return console.log('file uploading', err, res);
+
+                    console.log('file uploading ok', file.originalFilename);
+                    callback();
+                });
+            }
+        ]);
     });
 });
 
