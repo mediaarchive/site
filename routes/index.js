@@ -252,7 +252,7 @@ router.post('/cancel', form(
 
     var yadisk = yandexdisk();
     yadisk.cd(req.body.full_path);
-    yadisk.remove('фото/' + req.body.author_name);
+    yadisk.remove('фото/' + req.body.author_name, function(){});
 
     t.sendMessage(
         global.config.api.telegram.chat_id,
