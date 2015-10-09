@@ -149,7 +149,6 @@ $(function(){
             author_name: author_name,
             full_path: full_path
         }, function(res){
-            res = JSON.parse(res);
             if(res.status != 'ok'){
                 alert('Произошла неизвестная ошибка. Попробуйте еще раз');
                 console.error(res);
@@ -172,7 +171,6 @@ $(function(){
                 return;
             }
 
-            res = JSON.parse(res);
             if(res.status != 'ok'){
                 alert('Произошла неизвестная ошибка. Попробуйте еще раз');
                 console.error(res);
