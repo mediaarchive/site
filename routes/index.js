@@ -39,10 +39,90 @@ router.post('/', form(
             callback();
         });
     }, function(err){
-
         console.log('dirs created');
 
+        yadisk.cd(full_path);
 
+        async.parallel([
+            // info.txt
+            function(callback){
+                if(req.body.text == '')
+                    return callback();
+
+                var old_content = '';
+
+                async.series([
+                    function(callback){
+                        yadisk.readFile('info.txt', 'utf8', function(err, res){
+                            if(err)
+                                console.log(err);
+
+                            console.log(res);
+                            if(res != '')
+                                old_content = res + "\n\n";
+
+                            callback();
+                        });
+                    },
+                    function(callback){
+                        yadisk.writeFile('info.txt', old_content + req.body.text, 'utf8', function(err){
+                            if(err)
+                                console.log(err);
+
+                            callback();
+                        })
+                    }
+                ], function(){
+                    callback();
+                });
+            },
+
+            // data.json
+            function(callback){
+                var content;
+
+                async.series([
+                    function(callback){
+                        yadisk.readFile('data.json', 'utf8', function(err, res){
+                            if(err)
+                                console.log(err);
+
+                            console.log(res);
+                            if(typeof res != 'undefined' && res != '')
+                                content = JSON.parse(res);
+
+                            callback();
+                        });
+                    },
+                    function(callback){
+                        if(typeof content == 'undefined') {
+                            content = {
+                                authors: []
+                            };
+                        }
+
+                        content.authors.push({
+                            name: req.body.author_name,
+                            contact: req.body.contact
+                        });
+
+                        yadisk.writeFile('data.json', JSON.stringify(content), 'utf8', function(err){
+                            if(err)
+                                console.log(err);
+
+                            callback();
+                        })
+                    }
+                ], function(){
+                    callback();
+                });
+            }
+        ], function(){
+            res.cookie('full_path', full_path);
+            res.render('event', {
+                name: req.body.name
+            });
+        });
     });
 });
 
