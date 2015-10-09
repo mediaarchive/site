@@ -260,5 +260,10 @@ router.post('/cancel', form(
     );
 });
 
+router.get('/end', function(req, res, next) {
+    res.render('end', {
+        cancel: typeof req.query.cancel != 'undefined'
+    });
+});
 
 module.exports = router;

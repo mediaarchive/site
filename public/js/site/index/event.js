@@ -147,7 +147,7 @@ $(function(){
         $.post('/save', {
             name: $('#name').text(),
             author_name: author_name,
-            full_path: full_path,
+            full_path: full_path
         }, function(res){
             res = JSON.parse(res);
             if(res.status != 'ok'){
