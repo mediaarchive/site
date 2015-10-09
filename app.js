@@ -7,9 +7,10 @@ var bodyParser = require('body-parser');
 var swig = require('swig');
 
 var routes = require('./routes/index');
-var users = require('./routes/users');
 
 var app = express();
+
+global.config = require("./config.json");
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -143,5 +144,5 @@ function onListening() {
     var bind = typeof addr === 'string'
         ? 'pipe ' + addr
         : 'port ' + addr.port;
-    debug('Listening on ' + bind);
+    console.log('Listening on ' + bind);
 }
