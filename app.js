@@ -5,6 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var swig = require('swig');
+var argv = require('optimist').argv;
 
 var routes = require('./routes/index');
 
@@ -70,7 +71,7 @@ var http = require('http');
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(argv.port || process.env.PORT || '3000');
 app.set('port', port);
 
 /**
