@@ -1,5 +1,16 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+<script src="/libs/handlebars/handlebars.min.js"></script>
+<script src="/libs/jquery-filedrop/jquery.filedrop.js"></script>
+<script src="/libs/async/dist/async.min.js"></script>
+<script src="/js/general.js"></script>
+<script src="/js/site/index/event.js"></script>
+{% endblock %}
+
+{% block content %}
 <h1>Загрузка файлов для новости</h1>
-<h2>Мероприятие - <span id="name"><?=$name?></span></h2>
+<h2>Мероприятие - <span id="name">{{name}}</span></h2>
 
 <p>Вы можете загрузить фотографии, документы и другие файлы, которые нужно будет выложить на сайт школы</p>
 
@@ -28,14 +39,4 @@
     <button class="btn btn-block btn-sm btn-danger cancel_button"><i class="fa fa-close"></i> Отмена</button>
 </div>
 
-<script>
-    var full_path = '<?=$full_path?>';
-    var temp_dir_name = '<?=$temp_dir_name?>';
-    var author_name = '<?=$author_name?>';
-</script>
-
-<script type="text/x-handlebars-template" id="fileTemplate">
-    <div class="list-group-item list-group-item-info" data-id="{{name}}" data-str="{{str}}">
-        <i class="fa fa-file"></i> <span class="name">{{name}}</span>
-    </div>
-</script>
+{% endblock %}

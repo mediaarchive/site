@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Медиаархив</title>
+
+    <link rel="stylesheet" href="/libs/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/styles/site/css/style.min.css">
+    <script src="/libs/jquery/dist/jquery.min.js"></script>
+    <script src="/libs/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+<div class="container">
+    <div class="header clearfix">
+        <h3 class="text-muted"><a href="/">Медиаархив</a></h3>
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <footer class="footer">
+        <hr>
+        <div class="col-md-9">
+        &copy; 2015 Медиаархив от <a href="http://atnartur.ru">Артур Атнагулов</a> & <a href="http://clienddev.ru">ClienDDev team</a>
+        </div>
+        <p class="col-md-3">
+            <a href="https://github.com/atnartur/mediaarchivesite" target="_blank" class="pull-right"><i class="fa fa-github fa-2x"></i></a>
+        </p>
+    </footer>
+
+</div> <!-- /container -->
+
+</body>
+</html>

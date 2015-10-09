@@ -6,13 +6,29 @@ function filedrop_class (classname){
 }
 
 $(function(){
-    var fileTemplate = Handlebars.compile($('#fileTemplate').html());
-    var blocking_window = false;
+    var fileTemplate, blocking_window;
+
+    var author_name = getcookie('author_name');
+    var full_path = getcookie('full_path');
+
+    async.series([
+        function(callback){
+            $.get('/js/site/index/handlebars_templates.html', function(res){
+                $('body').append(res);
+                callback();
+            });
+        },
+        function(callback){
+            fileTemplate = Handlebars.compile($('#fileTemplate').html());
+            blocking_window = false;
+        }
+    ])
+
 
     window.onbeforeunload = function(){
         if(blocking_window)
             return 'Загрузка файлов еще не закончена. Вы уверены, что хотите уйти с этой страницы?';
-    }
+    };
 
     $(document)
         .on('dragover', function(){
@@ -37,13 +53,12 @@ $(function(){
         })
         .filedrop({
             fallback_id: 'fileinput',   // an identifier of a standard file input element, becomes the target of "click" events on the dropzone
-            url: "/index/upload",              // upload handler, handles each file separately, can also be a function taking the file and returning a url
+            url: "/upload",              // upload handler, handles each file separately, can also be a function taking the file and returning a url
             paramname: 'file',          // POST parameter name used on serverside to reference file, can also be a function taking the filename and returning the paramname
             withCredentials: true,          // make a cross-origin request with cookies
             data: {
-                temp_dir_name: temp_dir_name,
-                full_path: encodeURIComponent(full_path),
-                author_name: encodeURIComponent(author_name)
+                author_name: author_name,
+                full_path: full_path
             },
             error: function(err, file) {
                 console.error(err, file);
@@ -129,42 +144,39 @@ $(function(){
     $('.save_button').click(function(){
         $('button').attr('disabled', 'disabled');
 
-        $.post('/index/save', {
+        $.post('/save', {
             name: $('#name').text(),
             author_name: author_name,
-            full_path: full_path,
-            temp_dir_name: temp_dir_name
+            full_path: full_path
         }, function(res){
-            res = JSON.parse(res);
             if(res.status != 'ok'){
                 alert('Произошла неизвестная ошибка. Попробуйте еще раз');
                 console.error(res);
             }
             else
-                document.location.href = '/index/end';
+                document.location.href = '/end';
         });
     });
 
     $('.cancel_button').click(function(){
         $('button').attr('disabled', 'disabled');
 
-        $.post('/index/cancel', {
+        $.post('/cancel', {
             full_path: full_path,
-            temp_dir_name: temp_dir_name,
-            author_name: author_name
+            author_name: author_name,
+            name: $('#name').text()
         }, function(res){
             if(res == '') {
                 alert('Произошла неизвестная ошибка. Попробуйте еще раз');
                 return;
             }
 
-            res = JSON.parse(res);
             if(res.status != 'ok'){
                 alert('Произошла неизвестная ошибка. Попробуйте еще раз');
                 console.error(res);
             }
             else
-                document.location.href = '/index/end?cancel   ';
+                document.location.href = '/end?cancel';
         });
     });
 });
