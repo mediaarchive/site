@@ -169,7 +169,7 @@ router.post('/upload', form(
         var yadisk = yandexdisk();
         yadisk.cd(global.config.api.yandex_disk.base_dir);
 
-        var file_name = encodeURIComponent(file.originalFilename);
+        var file_name = decodeURIComponent(file.originalFilename);
         var ext = path.extname(file_name).toLowerCase();
 
         console.log(file, full_path);
