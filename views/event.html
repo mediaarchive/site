@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+
+{% block head %}
+<script src="/js/general.js"></script>
+<script src="/js/site/index/index.js"></script>
+{% endblock %}
+
+{% block content %}
+<h1>Загрузка файлов для новости</h1>
+<h2>Мероприятие - <span id="name">{{name}}</span></h2>
+
+<p>Вы можете загрузить фотографии, документы и другие файлы, которые нужно будет выложить на сайт школы</p>
+
+<input type="file" id="fileinput" multiple>
+
+<div id="filedrop">
+    <h1>Загрузить фотографии или другие файлы</h1>
+    <small>перетащите файл в эту область или нажмите сюда для выбора</small>
+    <div>
+        <i class="fa fa-2x fa-photo"></i>
+        <i class="fa fa-2x fa-file"></i>
+        <i class="fa fa-2x fa-file-text-o"></i>
+        <i class="fa fa-2x fa-file-word-o"></i>
+        <i class="fa fa-2x fa-file-pdf-o"></i>
+    </div>
+</div>
+
+<div class="progress">
+    <div class="progress-bar" id="progress" style="width: 0%;"></div>
+</div>
+
+<div id="file_list" class="list-group"></div>
+
+<div class="row">
+    <button class="btn btn-block btn-lg btn-primary save_button"><i class="fa fa-save"></i> Сохранить</button>
+    <button class="btn btn-block btn-sm btn-danger cancel_button"><i class="fa fa-close"></i> Отмена</button>
+</div>
+
+<script>
+    var full_path = '{{full_path}}';
+    var temp_dir_name = '{{temp_dir_name}}';
+    var author_name = '{{author_name}}';
+</script>
+
+{% endblock %}
